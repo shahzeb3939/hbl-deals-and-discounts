@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HBL Deals & Discounts</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
+      color: #333;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1a5632 0%, #2d8a56 100%);
+      color: white;
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header h1 { font-size: 24px; font-weight: 600; }
+    .header .subtitle { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .controls select, .controls button {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .controls select { background: rgba(255,255,255,0.95); color: #333; }
+
+    .btn-refresh {
+      background: #ffc107;
+      color: #1a1a1a;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .btn-refresh:hover { background: #e0a800; }
+    .btn-refresh:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-notify {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.3) !important;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .btn-notify:hover { background: rgba(255,255,255,0.25); }
+
+    .status-bar {
+      background: #e8f5e9;
+      padding: 12px 32px;
+      font-size: 13px;
+      color: #2e7d32;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .status-bar.error { background: #fce4ec; color: #c62828; }
+    .status-bar.loading { background: #fff3e0; color: #e65100; }
+
+    .container { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .stat-card .label { font-size: 12px; text-transform: uppercase; color: #888; letter-spacing: 0.5px; }
+    .stat-card .value { font-size: 28px; font-weight: 700; color: #1a5632; margin-top: 4px; }
+
+    .search-bar { margin-bottom: 20px; }
+    .search-bar input {
+      width: 100%;
+      max-width: 400px;
+      padding: 10px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-bar input:focus { border-color: #2d8a56; }
+
+    .deals-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 16px;
+    }
+
+    .deal-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .deal-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+
+    .deal-card .discount-badge {
+      background: linear-gradient(135deg, #1a5632, #2d8a56);
+      color: white;
+      padding: 14px 20px;
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .deal-card .discount-badge .cap {
+      font-size: 11px;
+      font-weight: 400;
+      opacity: 0.9;
+      background: rgba(255,255,255,0.15);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .deal-card .body { padding: 16px 20px; }
+    .deal-card .merchant { font-size: 17px; font-weight: 600; margin-bottom: 10px; color: #1a1a1a; }
+
+    .deal-card .meta {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 13px;
+      color: #555;
+    }
+    .deal-card .meta-row { display: flex; align-items: flex-start; gap: 6px; }
+    .deal-card .meta-icon { flex-shrink: 0; width: 18px; text-align: center; }
+
+    .day-pills { display: flex; gap: 4px; flex-wrap: wrap; }
+    .day-pill {
+      background: #e8f5e9;
+      color: #2e7d32;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .card-pills { display: flex; gap: 4px; flex-wrap: wrap; }
+    .card-pill {
+      background: #e3f2fd;
+      color: #1565c0;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    .table-view { display: none; overflow-x: auto; }
+    .table-view table {
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border-collapse: collapse;
+    }
+    .table-view th {
+      background: #1a5632;
+      color: white;
+      padding: 14px 12px;
+      text-align: left;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    .table-view td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+    .table-view tr:hover td { background: #f8faf8; }
+
+    .view-toggle {
+      display: flex;
+      gap: 4px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 3px;
+    }
+    .view-toggle button {
+      background: transparent;
+      color: rgba(255,255,255,0.7);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .view-toggle button.active {
+      background: rgba(255,255,255,0.95);
+      color: #1a5632;
+      font-weight: 600;
+    }
+
+    .empty-state { text-align: center; padding: 80px 20px; color: #888; }
+    .empty-state h2 { font-size: 20px; margin-bottom: 8px; color: #555; }
+
+    @media (max-width: 600px) {
+      .header { padding: 16px; }
+      .header h1 { font-size: 18px; }
+      .deals-grid { grid-template-columns: 1fr; }
+      .container { padding: 0 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>HBL Deals & Discounts</h1>
+    <div class="subtitle">Find the best offers for your HBL card</div>
+  </div>
+  <div class="controls">
+    <div class="view-toggle">
+      <button class="active" onclick="setView('cards')">Cards</button>
+      <button onclick="setView('table')">Table</button>
+    </div>
+    <select id="cityFilter">
+      <option value="Islamabad">Islamabad</option>
+      <option value="Rawalpindi">Rawalpindi</option>
+      <option value="Lahore">Lahore</option>
+      <option value="Karachi">Karachi</option>
+      <option value="Faisalabad">Faisalabad</option>
+      <option value="Peshawar">Peshawar</option>
+      <option value="Multan">Multan</option>
+      <option value="Quetta">Quetta</option>
+    </select>
+    <select id="cardFilter">
+      <option value="HBL Platinum CreditCard">HBL Platinum CreditCard</option>
+      <option value="HBL Gold CreditCard">HBL Gold CreditCard</option>
+      <option value="HBL Green CreditCard">HBL Green CreditCard</option>
+      <option value="HBL World DebitCard">HBL World DebitCard</option>
+      <option value="HBL World Elite DebitCard">HBL World Elite DebitCard</option>
+      <option value="HBL Gold DebitCard">HBL Gold DebitCard</option>
+      <option value="HBL DebitCard">HBL DebitCard</option>
+      <option value="HBL Titanium DebitCard">HBL Titanium DebitCard</option>
+      <option value="HBL FuelSaver CreditCard">HBL FuelSaver CreditCard</option>
+      <option value="HBL Konnect Debit Card">HBL Konnect Debit Card</option>
+      <option value="HBL Nisa DebitCard">HBL Nisa DebitCard</option>
+      <option value="all">All Cards</option>
+    </select>
+    <button class="btn-refresh" id="btnRefresh" onclick="refreshDeals()">Refresh Deals</button>
+    <button class="btn-notify" onclick="sendNotify()">Send Notification</button>
+  </div>
+</div>
+
+<div class="status-bar" id="statusBar">
+  <span id="statusText">Loading cached deals...</span>
+  <span id="lastUpdated"></span>
+</div>
+
+<div class="container">
+  <div class="stats" id="statsSection" style="display:none;">
+    <div class="stat-card">
+      <div class="label">Matching Deals</div>
+      <div class="value" id="statTotal">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">City</div>
+      <div class="value" id="statCity" style="font-size:18px;">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Card</div>
+      <div class="value" id="statCard" style="font-size:13px;">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Best Discount</div>
+      <div class="value" id="statBest">-</div>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search merchants or days..." oninput="filterDeals()">
+  </div>
+
+  <div class="deals-grid" id="dealsGrid"></div>
+
+  <div class="table-view" id="tableView">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Merchant</th>
+          <th>Discount</th>
+          <th>Valid Days</th>
+          <th>Max Cap</th>
+          <th>Cards</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <div class="empty-state" id="emptyState" style="display:none;">
+    <h2>No deals loaded yet</h2>
+    <p>Click "Refresh Deals" to fetch the latest HBL deals.</p>
+  </div>
+</div>
+
+<script>
+  let allDeals = [];
+  let currentView = 'cards';
+
+  async function loadDeals() {
+    try {
+      const res = await fetch('/api/deals');
+      const data = await res.json();
+      renderData(data);
+    } catch (err) {
+      setStatus('Failed to load deals: ' + err.message, 'error');
+    }
+  }
+
+  async function refreshDeals() {
+    const btn = document.getElementById('btnRefresh');
+    btn.disabled = true;
+    btn.textContent = 'Fetching...';
+    setStatus('Fetching deals from HBL APIs... This may take 30-60 seconds.', 'loading');
+
+    try {
+      const city = document.getElementById('cityFilter').value;
+      const card = document.getElementById('cardFilter').value;
+
+      const res = await fetch('/api/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ city, card }),
+      });
+
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      renderData(data);
+    } catch (err) {
+      setStatus('Failed: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Refresh Deals';
+    }
+  }
+
+  async function sendNotify() {
+    setStatus('Sending notifications...', 'loading');
+    try {
+      const res = await fetch('/api/notify', { method: 'POST' });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setStatus('Notifications sent!', '');
+    } catch (err) {
+      setStatus('Notification failed: ' + err.message, 'error');
+    }
+  }
+
+  function renderData(data) {
+    allDeals = data.deals || [];
+
+    if (allDeals.length === 0) {
+      document.getElementById('emptyState').style.display = 'block';
+      document.getElementById('statsSection').style.display = 'none';
+      document.getElementById('dealsGrid').innerHTML = '';
+      document.getElementById('tableBody').innerHTML = '';
+      setStatus(data.message || 'No deals found.', '');
+      return;
+    }
+
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('statsSection').style.display = 'grid';
+
+    document.getElementById('statTotal').textContent = data.totalDeals;
+    document.getElementById('statCity').textContent = data.filters?.city || '-';
+    document.getElementById('statCard').textContent = data.filters?.card || '-';
+
+    const best = allDeals.length > 0 ? Math.max(...allDeals.map(d => d.percentageValue || 0)) + '%' : '-';
+    document.getElementById('statBest').textContent = best;
+
+    const time = data.scrapedAt ? new Date(data.scrapedAt).toLocaleString() : '';
+    document.getElementById('lastUpdated').textContent = time ? 'Updated: ' + time : '';
+
+    setStatus(`Loaded ${data.totalDeals} deals`, '');
+    renderDeals(allDeals);
+  }
+
+  function renderDeals(deals) {
+    const grid = document.getElementById('dealsGrid');
+    grid.innerHTML = deals.map(d => `
+      <div class="deal-card">
+        <div class="discount-badge">
+          <span>${esc(d.discount)}</span>
+          ${d.maxCap ? `<span class="cap">${esc(d.maxCap)}</span>` : ''}
+        </div>
+        <div class="body">
+          <div class="merchant">${esc(d.merchant)}</div>
+          <div class="meta">
+            <div class="meta-row">
+              <span class="meta-icon">&#128197;</span>
+              <div class="day-pills">${formatDays(d.validDays)}</div>
+            </div>
+            <div class="meta-row">
+              <span class="meta-icon">&#128179;</span>
+              <div class="card-pills">${(d.cards || []).map(c => `<span class="card-pill">${esc(c)}</span>`).join('')}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = deals.map((d, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td><strong>${esc(d.merchant)}</strong></td>
+        <td>${esc(d.discount)}</td>
+        <td>${d.validDays || 'All Days'}</td>
+        <td>${d.maxCap || 'N/A'}</td>
+        <td style="font-size:11px;">${(d.cards || []).join(', ')}</td>
+      </tr>
+    `).join('');
+  }
+
+  function filterDeals() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = allDeals.filter(d =>
+      d.merchant.toLowerCase().includes(q) ||
+      (d.validDays || '').toLowerCase().includes(q) ||
+      (d.discount || '').toLowerCase().includes(q)
+    );
+    renderDeals(filtered);
+  }
+
+  function formatDays(days) {
+    if (!days || days === 'All Days') return '<span class="day-pill">All Days</span>';
+    return days.split(',').map(d => `<span class="day-pill">${d.trim()}</span>`).join('');
+  }
+
+  function setView(view) {
+    currentView = view;
+    document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('dealsGrid').style.display = view === 'cards' ? 'grid' : 'none';
+    document.getElementById('tableView').style.display = view === 'table' ? 'block' : 'none';
+  }
+
+  function setStatus(text, type) {
+    document.getElementById('statusText').textContent = text;
+    document.getElementById('statusBar').className = 'status-bar' + (type ? ' ' + type : '');
+  }
+
+  function esc(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+  }
+
+  loadDeals();
+</script>
+
+</body>
+</html>

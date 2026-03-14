@@ -1,0 +1,17 @@
+{
+  "name": "hbl-deals-and-discounts",
+  "version": "1.0.0",
+  "description": "Scrape and display HBL card deals and discounts",
+  "main": "server.js",
+  "scripts": {
+    "scrape": "node scraper.js",
+    "start": "node server.js",
+    "notify": "node notifier.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.0",
+    "express": "^4.21.0",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.9.0"
+  }
+}
