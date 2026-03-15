@@ -178,6 +178,16 @@
       font-weight: 500;
     }
 
+    .branch-pills { display: flex; gap: 4px; flex-wrap: wrap; }
+    .branch-pill {
+      background: #fff3e0;
+      color: #e65100;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
     .table-view { display: none; overflow-x: auto; }
     .table-view table {
       width: 100%;
@@ -298,7 +308,7 @@
   </div>
 
   <div class="search-bar">
-    <input type="text" id="searchInput" placeholder="Search merchants or days..." oninput="filterDeals()">
+    <input type="text" id="searchInput" placeholder="Search merchants, days, or locations..." oninput="filterDeals()">
   </div>
 
   <div class="deals-grid" id="dealsGrid"></div>
@@ -313,6 +323,7 @@
           <th>Valid Days</th>
           <th>Max Cap</th>
           <th>Cards</th>
+          <th>Locations</th>
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
@@ -426,6 +437,10 @@
               <span class="meta-icon">&#128179;</span>
               <div class="card-pills">${(d.cards || []).map(c => `<span class="card-pill">${esc(c)}</span>`).join('')}</div>
             </div>
+            ${formatBranches(d.branches) ? `<div class="meta-row">
+              <span class="meta-icon">&#128205;</span>
+              <div class="branch-pills">${formatBranches(d.branches)}</div>
+            </div>` : ''}
           </div>
         </div>
       </div>
@@ -440,6 +455,7 @@
         <td>${d.validDays || 'All Days'}</td>
         <td>${d.maxCap || 'N/A'}</td>
         <td style="font-size:11px;">${(d.cards || []).join(', ')}</td>
+        <td style="font-size:11px;">${formatBranchesText(d.branches)}</td>
       </tr>
     `).join('');
   }
@@ -449,7 +465,8 @@
     const filtered = allDeals.filter(d =>
       d.merchant.toLowerCase().includes(q) ||
       (d.validDays || '').toLowerCase().includes(q) ||
-      (d.discount || '').toLowerCase().includes(q)
+      (d.discount || '').toLowerCase().includes(q) ||
+      formatBranchesText(d.branches).toLowerCase().includes(q)
     );
     renderDeals(filtered);
   }
@@ -457,6 +474,51 @@
   function formatDays(days) {
     if (!days || days === 'All Days') return '<span class="day-pill">All Days</span>';
     return days.split(',').map(d => `<span class="day-pill">${d.trim()}</span>`).join('');
+  }
+
+  function formatBranches(branches) {
+    if (!branches) return '';
+    let names = [];
+    if (Array.isArray(branches)) {
+      names = branches.map(b => b.name || b.branchName || b.address || b.locality || '').filter(Boolean);
+    } else if (typeof branches === 'object') {
+      const keys = Object.keys(branches);
+      if (keys.length === 0) return '';
+      for (const key of keys) {
+        const val = branches[key];
+        if (typeof val === 'string') {
+          names.push(val);
+        } else if (val && typeof val === 'object') {
+          names.push(val.name || val.branchName || val.address || val.locality || key);
+        } else {
+          names.push(key);
+        }
+      }
+    }
+    if (names.length === 0) return '';
+    return names.map(n => `<span class="branch-pill">${esc(n)}</span>`).join('');
+  }
+
+  function formatBranchesText(branches) {
+    if (!branches) return 'N/A';
+    let names = [];
+    if (Array.isArray(branches)) {
+      names = branches.map(b => b.name || b.branchName || b.address || b.locality || '').filter(Boolean);
+    } else if (typeof branches === 'object') {
+      const keys = Object.keys(branches);
+      if (keys.length === 0) return 'N/A';
+      for (const key of keys) {
+        const val = branches[key];
+        if (typeof val === 'string') {
+          names.push(val);
+        } else if (val && typeof val === 'object') {
+          names.push(val.name || val.branchName || val.address || val.locality || key);
+        } else {
+          names.push(key);
+        }
+      }
+    }
+    return names.length > 0 ? names.join(', ') : 'N/A';
   }
 
   function setView(view) {
