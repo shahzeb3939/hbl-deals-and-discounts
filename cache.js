@@ -7,7 +7,7 @@ const DATA_DIR = path.join(__dirname, "data");
 function cacheKey(city, card) {
   const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
   const slug = `${city}_${card}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  return `deals/${date}/${slug}.json`;
+  return `cache_${date}_${slug}.json`;
 }
 
 async function getCache(city, card) {
@@ -15,13 +15,23 @@ async function getCache(city, card) {
     try {
       const { list } = require("@vercel/blob");
       const key = cacheKey(city, card);
-      const { blobs } = await list({ prefix: key, limit: 1 });
+      console.log(`[Cache] Looking for blob with prefix: ${key}`);
+      const { blobs } = await list({ prefix: key });
+      console.log(`[Cache] Found ${blobs.length} blobs matching prefix`);
       if (blobs.length === 0) return null;
-      const res = await fetch(blobs[0].url);
-      if (!res.ok) return null;
-      return await res.json();
+
+      const blobUrl = blobs[0].downloadUrl || blobs[0].url;
+      console.log(`[Cache] Fetching blob from: ${blobUrl}`);
+      const res = await fetch(blobUrl);
+      if (!res.ok) {
+        console.error(`[Cache] Fetch failed with status: ${res.status}`);
+        return null;
+      }
+      const data = await res.json();
+      console.log(`[Cache] Successfully loaded ${data.totalDeals} deals from cache`);
+      return data;
     } catch (err) {
-      console.error("Cache read error:", err.message);
+      console.error("[Cache] Read error:", err.message, err.stack);
       return null;
     }
   } else {
@@ -29,7 +39,6 @@ async function getCache(city, card) {
     if (!fs.existsSync(filePath)) return null;
     try {
       const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-      // Check if cached data is from today and matches filters
       if (data.scrapedAt) {
         const cachedDate = data.scrapedAt.slice(0, 10);
         const today = new Date().toISOString().slice(0, 10);
@@ -53,14 +62,16 @@ async function setCache(city, card, data) {
     try {
       const { put } = require("@vercel/blob");
       const key = cacheKey(city, card);
-      await put(key, JSON.stringify(data), {
+      const body = JSON.stringify(data);
+      console.log(`[Cache] Saving blob: ${key} (${body.length} bytes)`);
+      const blob = await put(key, body, {
         access: "public",
         contentType: "application/json",
         addRandomSuffix: false,
       });
-      console.log(`Cache saved: ${key}`);
+      console.log(`[Cache] Saved successfully: ${blob.url}`);
     } catch (err) {
-      console.error("Cache write error:", err.message);
+      console.error("[Cache] Write error:", err.message, err.stack);
     }
   } else {
     if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
