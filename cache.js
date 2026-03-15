@@ -31,11 +31,11 @@ async function getCache(city, card) {
 
       const blobUrl = blobs[0].url;
       console.log(`[Cache] Fetching: ${blobUrl}`);
-      const { head } = require("@vercel/blob");
-      const blobMeta = await head(blobUrl, { token });
-      const res = await fetch(blobMeta.downloadUrl);
+      const res = await fetch(blobUrl, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!res.ok) {
-        console.error(`[Cache] Fetch failed: ${res.status}`);
+        console.error(`[Cache] Fetch failed: ${res.status} ${res.statusText}`);
         return null;
       }
       const data = await res.json();

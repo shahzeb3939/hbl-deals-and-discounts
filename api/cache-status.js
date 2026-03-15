@@ -28,9 +28,9 @@ module.exports = async (req, res) => {
       info.listTest = { success: true, found: blobs.length };
 
       // Read test
-      const { head } = require("@vercel/blob");
-      const blobMeta = await head(testBlob.url, { token });
-      const fetchRes = await fetch(blobMeta.downloadUrl);
+      const fetchRes = await fetch(testBlob.url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await fetchRes.json();
       info.readTest = { success: true, data };
 
