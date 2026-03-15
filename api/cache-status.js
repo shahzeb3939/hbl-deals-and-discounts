@@ -16,7 +16,7 @@ module.exports = async (req, res) => {
 
       // Write test
       const testBlob = await put("_cache-test.json", JSON.stringify({ test: true, ts: Date.now() }), {
-        access: "public",
+        access: "private",
         contentType: "application/json",
         addRandomSuffix: false,
         token,
@@ -28,7 +28,9 @@ module.exports = async (req, res) => {
       info.listTest = { success: true, found: blobs.length };
 
       // Read test
-      const fetchRes = await fetch(testBlob.downloadUrl || testBlob.url);
+      const { head } = require("@vercel/blob");
+      const blobMeta = await head(testBlob.url, { token });
+      const fetchRes = await fetch(blobMeta.downloadUrl);
       const data = await fetchRes.json();
       info.readTest = { success: true, data };
 

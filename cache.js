@@ -29,9 +29,11 @@ async function getCache(city, card) {
       console.log(`[Cache] Found ${blobs.length} blobs`);
       if (blobs.length === 0) return null;
 
-      const blobUrl = blobs[0].downloadUrl || blobs[0].url;
+      const blobUrl = blobs[0].url;
       console.log(`[Cache] Fetching: ${blobUrl}`);
-      const res = await fetch(blobUrl);
+      const { head } = require("@vercel/blob");
+      const blobMeta = await head(blobUrl, { token });
+      const res = await fetch(blobMeta.downloadUrl);
       if (!res.ok) {
         console.error(`[Cache] Fetch failed: ${res.status}`);
         return null;
@@ -79,7 +81,7 @@ async function setCache(city, card, data) {
       const body = JSON.stringify(data);
       console.log(`[Cache] Saving: ${key} (${body.length} bytes)`);
       const blob = await put(key, body, {
-        access: "public",
+        access: "private",
         contentType: "application/json",
         addRandomSuffix: false,
         token,
