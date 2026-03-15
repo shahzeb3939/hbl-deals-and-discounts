@@ -1,13 +1,13 @@
-const fs = require("fs");
-const path = require("path");
-
-const DATA_DIR = process.env.VERCEL ? "/tmp" : path.join(__dirname, "..", "data");
-const DATA_FILE = path.join(DATA_DIR, "deals.json");
+const { getCache } = require("../cache");
 
 module.exports = async (req, res) => {
-  if (!fs.existsSync(DATA_FILE)) {
-    return res.json({ deals: [], totalDeals: 0, message: "No data yet. Click Refresh to scrape." });
+  const city = req.query.city || process.env.DEFAULT_CITY || "Islamabad";
+  const card = req.query.card || process.env.DEFAULT_CARD || "HBL Platinum CreditCard";
+
+  const cached = await getCache(city, card);
+  if (cached) {
+    return res.json(cached);
   }
-  const data = JSON.parse(fs.readFileSync(DATA_FILE, "utf-8"));
-  res.json(data);
+
+  res.json({ deals: [], totalDeals: 0, message: "No data yet. Click Refresh to scrape." });
 };
