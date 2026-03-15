@@ -136,7 +136,7 @@ async function scrapeDeals(city = "Islamabad", cardFilter = "HBL Platinum Credit
   console.log("Fetching deals for each merchant...");
   const allDeals = [];
   const merchantsWithDeals = allMerchants.filter((m) => m.associatedDealCount > 0);
-  const BATCH_SIZE = 10;
+  const BATCH_SIZE = 30;
 
   for (let i = 0; i < merchantsWithDeals.length; i += BATCH_SIZE) {
     const batch = merchantsWithDeals.slice(i, i + BATCH_SIZE);
