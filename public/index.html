@@ -277,6 +277,16 @@
       <option value="HBL Nisa DebitCard">HBL Nisa DebitCard</option>
       <option value="all">All Cards</option>
     </select>
+    <select id="dayFilter" onchange="filterDeals()">
+      <option value="all">All Days</option>
+      <option value="Monday">Monday</option>
+      <option value="Tuesday">Tuesday</option>
+      <option value="Wednesday">Wednesday</option>
+      <option value="Thursday">Thursday</option>
+      <option value="Friday">Friday</option>
+      <option value="Saturday">Saturday</option>
+      <option value="Sunday">Sunday</option>
+    </select>
     <button class="btn-refresh" id="btnRefresh" onclick="refreshDeals()">Refresh Deals</button>
     <button class="btn-notify" onclick="sendNotify()">Send Notification</button>
   </div>
@@ -462,12 +472,18 @@
 
   function filterDeals() {
     const q = document.getElementById('searchInput').value.toLowerCase();
-    const filtered = allDeals.filter(d =>
-      d.merchant.toLowerCase().includes(q) ||
-      (d.validDays || '').toLowerCase().includes(q) ||
-      (d.discount || '').toLowerCase().includes(q) ||
-      formatBranchesText(d.branches).toLowerCase().includes(q)
-    );
+    const dayFilter = document.getElementById('dayFilter').value;
+    const filtered = allDeals.filter(d => {
+      const matchesSearch = !q ||
+        d.merchant.toLowerCase().includes(q) ||
+        (d.validDays || '').toLowerCase().includes(q) ||
+        (d.discount || '').toLowerCase().includes(q) ||
+        formatBranchesText(d.branches).toLowerCase().includes(q);
+      const matchesDay = dayFilter === 'all' ||
+        (d.validDays || 'All Days') === 'All Days' ||
+        (d.validDays || '').toLowerCase().includes(dayFilter.toLowerCase());
+      return matchesSearch && matchesDay;
+    });
     renderDeals(filtered);
   }
 
