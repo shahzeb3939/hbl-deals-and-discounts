@@ -132,16 +132,24 @@ async function scrapeDeals(city = "Islamabad", cardFilter = "HBL Platinum Credit
 
   console.log(`Total merchants: ${allMerchants.length}`);
 
-  // Step 2: Fetch deals for each merchant
+  // Step 2: Fetch deals for each merchant (in parallel batches)
   console.log("Fetching deals for each merchant...");
   const allDeals = [];
+  const merchantsWithDeals = allMerchants.filter((m) => m.associatedDealCount > 0);
+  const BATCH_SIZE = 10;
 
-  for (let i = 0; i < allMerchants.length; i++) {
-    const m = allMerchants[i];
-    if (m.associatedDealCount === 0) continue;
+  for (let i = 0; i < merchantsWithDeals.length; i += BATCH_SIZE) {
+    const batch = merchantsWithDeals.slice(i, i + BATCH_SIZE);
+    const results = await Promise.allSettled(
+      batch.map((m) => fetchDeals(city, m.entityId, m.name).then((deals) => ({ m, deals })))
+    );
 
-    try {
-      const deals = await fetchDeals(city, m.entityId, m.name);
+    for (const result of results) {
+      if (result.status !== "fulfilled") {
+        console.error(`  Error: ${result.reason?.message}`);
+        continue;
+      }
+      const { m, deals } = result.value;
       if (!Array.isArray(deals)) continue;
 
       for (const deal of deals) {
@@ -166,16 +174,9 @@ async function scrapeDeals(city = "Islamabad", cardFilter = "HBL Platinum Credit
           dealId: deal.dealId,
         });
       }
-
-      if ((i + 1) % 10 === 0) {
-        console.log(`  Processed ${i + 1}/${allMerchants.length} merchants, ${allDeals.length} deals found`);
-      }
-
-      // Small delay to be respectful
-      await new Promise((r) => setTimeout(r, 100));
-    } catch (err) {
-      console.error(`  Error for ${m.name}: ${err.message}`);
     }
+
+    console.log(`  Processed ${Math.min(i + BATCH_SIZE, merchantsWithDeals.length)}/${merchantsWithDeals.length} merchants, ${allDeals.length} deals found`);
   }
 
   console.log(`\nTotal deals found: ${allDeals.length}`);
