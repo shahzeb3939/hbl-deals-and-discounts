@@ -3,9 +3,13 @@ const { notify } = require("../notifier");
 const { setCache } = require("../cache");
 
 module.exports = async (req, res) => {
-  const authHeader = req.headers.authorization;
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return res.status(401).json({ error: "Unauthorized" });
+  // Only enforce auth if CRON_SECRET is configured
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret) {
+    const authHeader = req.headers.authorization;
+    if (authHeader !== `Bearer ${cronSecret}`) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
   }
 
   try {
