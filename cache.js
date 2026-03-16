@@ -14,6 +14,14 @@ function getBlobToken() {
   return process.env.BLOB_READ_WRITE_TOKEN || "";
 }
 
+async function streamToString(stream) {
+  const chunks = [];
+  for await (const chunk of stream) {
+    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+  }
+  return Buffer.concat(chunks).toString("utf-8");
+}
+
 async function getCache(city, card) {
   if (IS_VERCEL) {
     const token = getBlobToken();
@@ -22,26 +30,19 @@ async function getCache(city, card) {
       return null;
     }
     try {
-      const { list } = require("@vercel/blob");
+      const { get } = require("@vercel/blob");
       const key = cacheKey(city, card);
-      console.log(`[Cache] Looking for blob: ${key}`);
-      const { blobs } = await list({ prefix: key, token });
-      console.log(`[Cache] Found ${blobs.length} blobs`);
-      if (blobs.length === 0) return null;
-
-      const blobUrl = blobs[0].url;
-      console.log(`[Cache] Fetching: ${blobUrl}`);
-      const res = await fetch(blobUrl, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        console.error(`[Cache] Fetch failed: ${res.status} ${res.statusText}`);
-        return null;
-      }
-      const data = await res.json();
+      console.log(`[Cache] Getting blob: ${key}`);
+      const result = await get(key, { access: "private", token });
+      const text = await streamToString(result.stream);
+      const data = JSON.parse(text);
       console.log(`[Cache] Loaded ${data.totalDeals} deals from cache`);
       return data;
     } catch (err) {
+      if (err.code === "blob_not_found" || err.message?.includes("not found")) {
+        console.log("[Cache] No cached data found");
+        return null;
+      }
       console.error("[Cache] Read error:", err.message);
       return null;
     }

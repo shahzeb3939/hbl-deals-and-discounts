@@ -8,10 +8,9 @@ module.exports = async (req, res) => {
     tokenPrefix: hasToken ? process.env.BLOB_READ_WRITE_TOKEN.substring(0, 10) + "..." : "NOT SET",
   };
 
-  // Try a quick blob write/read test
   if (hasToken && isVercel) {
     try {
-      const { put, list, del } = require("@vercel/blob");
+      const { put, get, list, del } = require("@vercel/blob");
       const token = process.env.BLOB_READ_WRITE_TOKEN;
 
       // Write test
@@ -28,11 +27,13 @@ module.exports = async (req, res) => {
       const { blobs } = await list({ prefix: "_cache-test", token });
       info.listTest = { success: true, found: blobs.length };
 
-      // Read test
-      const fetchRes = await fetch(testBlob.url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await fetchRes.json();
+      // Read test using get()
+      const result = await get("_cache-test.json", { access: "private", token });
+      const chunks = [];
+      for await (const chunk of result.stream) {
+        chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+      }
+      const data = JSON.parse(Buffer.concat(chunks).toString("utf-8"));
       info.readTest = { success: true, data };
 
       // Cleanup
