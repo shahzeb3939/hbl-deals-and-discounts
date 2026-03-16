@@ -84,6 +84,7 @@ async function setCache(city, card, data) {
         access: "private",
         contentType: "application/json",
         addRandomSuffix: false,
+        allowOverwrite: true,
         token,
       });
       console.log(`[Cache] Saved: ${blob.url}`);

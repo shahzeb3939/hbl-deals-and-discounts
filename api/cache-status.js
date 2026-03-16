@@ -19,6 +19,7 @@ module.exports = async (req, res) => {
         access: "private",
         contentType: "application/json",
         addRandomSuffix: false,
+        allowOverwrite: true,
         token,
       });
       info.writeTest = { success: true, url: testBlob.url };
