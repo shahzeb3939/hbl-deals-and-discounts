@@ -356,6 +356,11 @@
       const card = document.getElementById('cardFilter').value;
       const res = await fetch(`/api/deals?city=${encodeURIComponent(city)}&card=${encodeURIComponent(card)}`);
       const data = await res.json();
+      if (!data.deals || data.deals.length === 0) {
+        // No cached data — auto-fetch
+        refreshDeals();
+        return;
+      }
       renderData(data);
     } catch (err) {
       setStatus('Failed to load deals: ' + err.message, 'error');
