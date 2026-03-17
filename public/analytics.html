@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics — HBL Deals</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --glass: rgba(255, 255, 255, 0.45);
+      --glass-strong: rgba(255, 255, 255, 0.65);
+      --glass-subtle: rgba(255, 255, 255, 0.25);
+      --glass-border: rgba(255, 255, 255, 0.5);
+      --glass-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.6);
+      --glass-shadow-hover: 0 16px 48px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.7);
+      --glass-shadow-sm: 0 2px 12px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.5);
+      --blur: 24px;
+      --blur-strong: 40px;
+      --text: #1d1d1f;
+      --text-secondary: rgba(0,0,0,0.55);
+      --text-muted: rgba(0,0,0,0.35);
+      --green: #34c759;
+      --green-dark: #248a3d;
+      --blue: #007aff;
+      --orange: #ff9500;
+      --red: #ff3b30;
+      --indigo: #5856d6;
+      --teal: #5ac8fa;
+      --radius: 20px;
+      --radius-sm: 14px;
+      --radius-xs: 10px;
+      --radius-pill: 100px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
+      background: #e8ecf4;
+      background-image:
+        radial-gradient(ellipse at 15% 10%, rgba(88,86,214,0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 20%, rgba(0,122,255,0.12) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, rgba(52,199,89,0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 70%, rgba(90,200,250,0.1) 0%, transparent 45%);
+      background-attachment: fixed;
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .header {
+      background: rgba(30, 30, 60, 0.7);
+      backdrop-filter: blur(var(--blur-strong)) saturate(180%);
+      -webkit-backdrop-filter: blur(var(--blur-strong)) saturate(180%);
+      color: white;
+      padding: 24px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      position: relative;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+    }
+    .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; }
+    .header .subtitle { font-size: 13px; opacity: 0.6; margin-top: 3px; font-weight: 400; }
+    .header a {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: var(--radius-xs);
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(12px);
+      transition: all 0.3s ease;
+    }
+    .header a:hover { background: rgba(255,255,255,0.2); color: white; }
+
+    .container { max-width: 1280px; margin: 28px auto; padding: 0 20px; }
+
+    /* ── Summary Cards ── */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .summary-card {
+      background: var(--glass);
+      backdrop-filter: blur(var(--blur)) saturate(180%);
+      -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      box-shadow: var(--glass-shadow-sm);
+      border: 1px solid var(--glass-border);
+      transition: all 0.35s cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+    .summary-card:hover {
+      box-shadow: var(--glass-shadow);
+      transform: translateY(-2px);
+      background: var(--glass-strong);
+    }
+    .summary-card .label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.6px;
+      font-weight: 600;
+    }
+    .summary-card .value {
+      font-size: 32px;
+      font-weight: 700;
+      margin-top: 6px;
+      letter-spacing: -0.5px;
+    }
+    .summary-card .value.green { color: var(--green-dark); }
+    .summary-card .value.blue { color: var(--blue); }
+    .summary-card .value.indigo { color: var(--indigo); }
+    .summary-card .value.orange { color: #c93400; }
+
+    /* ── Sections ── */
+    .section {
+      background: var(--glass);
+      backdrop-filter: blur(var(--blur)) saturate(180%);
+      -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--glass-shadow-sm);
+      border: 1px solid var(--glass-border);
+      margin-bottom: 20px;
+    }
+    .section h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 18px;
+      color: var(--text);
+      letter-spacing: -0.2px;
+    }
+
+    /* ── Chart ── */
+    .chart-container { position: relative; height: 180px; display: flex; align-items: flex-end; gap: 4px; padding-top: 20px; }
+    .chart-bar-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+    .chart-bar {
+      width: 100%;
+      max-width: 32px;
+      border-radius: 6px 6px 2px 2px;
+      background: linear-gradient(180deg, rgba(0,122,255,0.7), rgba(88,86,214,0.5));
+      transition: all 0.4s cubic-bezier(0.25,0.46,0.45,0.94);
+      position: relative;
+      min-height: 2px;
+    }
+    .chart-bar:hover { background: linear-gradient(180deg, rgba(0,122,255,0.9), rgba(88,86,214,0.7)); transform: scaleY(1.05); }
+    .chart-bar .tooltip {
+      display: none;
+      position: absolute;
+      top: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.75);
+      color: white;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      backdrop-filter: blur(8px);
+    }
+    .chart-bar:hover .tooltip { display: block; }
+    .chart-label {
+      font-size: 9px;
+      color: var(--text-muted);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      text-align: center;
+    }
+
+    /* ── Location Grid ── */
+    .location-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .location-list { list-style: none; }
+    .location-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: var(--radius-xs);
+      margin-bottom: 4px;
+      transition: background 0.2s;
+    }
+    .location-item:hover { background: rgba(255,255,255,0.4); }
+    .location-name { font-size: 13px; font-weight: 500; color: var(--text); }
+    .location-count {
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+      background: rgba(0,122,255,0.7);
+      padding: 2px 10px;
+      border-radius: var(--radius-pill);
+      backdrop-filter: blur(4px);
+      min-width: 36px;
+      text-align: center;
+    }
+    .location-count.green-bg { background: rgba(52,199,89,0.7); }
+
+    /* ── Visitor Table ── */
+    .visitor-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .visitor-controls select, .visitor-controls input {
+      padding: 8px 14px;
+      border-radius: var(--radius-xs);
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text);
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    .visitor-controls select:focus, .visitor-controls input:focus {
+      border-color: rgba(0,122,255,0.4);
+      box-shadow: 0 0 0 3px rgba(0,122,255,0.1);
+    }
+    .visitor-controls select {
+      appearance: none;
+      padding-right: 28px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='rgba(0,0,0,0.4)' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+
+    .visitors-table { width: 100%; border-collapse: collapse; }
+    .visitors-table th {
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .visitors-table td {
+      padding: 10px 12px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid rgba(0,0,0,0.03);
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .visitors-table tr:hover td { background: rgba(255,255,255,0.3); }
+    .visitors-table .ip { font-family: 'SF Mono', 'Menlo', monospace; font-size: 12px; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+      font-weight: 600;
+      backdrop-filter: blur(4px);
+    }
+    .badge-country {
+      background: rgba(88,86,214,0.12);
+      color: var(--indigo);
+      border: 1px solid rgba(88,86,214,0.2);
+    }
+    .badge-city {
+      background: rgba(0,122,255,0.1);
+      color: var(--blue);
+      border: 1px solid rgba(0,122,255,0.18);
+    }
+
+    .device-icon { font-size: 14px; margin-right: 4px; }
+
+    .empty-msg {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 700px) {
+      .header { padding: 20px 16px; }
+      .container { padding: 0 12px; margin: 20px auto; }
+      .location-grid { grid-template-columns: 1fr; }
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .visitors-table { font-size: 12px; }
+      .visitors-table th, .visitors-table td { padding: 8px 6px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Visitor Analytics</h1>
+    <div class="subtitle">HBL Deals & Discounts</div>
+  </div>
+  <a href="/">Back to Deals</a>
+</div>
+
+<div class="container">
+  <div class="loading" id="loadingState">Loading analytics data...</div>
+
+  <div id="dashboardContent" style="display:none;">
+    <!-- Summary Cards -->
+    <div class="summary-grid" id="summaryGrid">
+      <div class="summary-card">
+        <div class="label">Today's Visits</div>
+        <div class="value green" id="todayVisits">0</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Total Visits</div>
+        <div class="value blue" id="totalVisits">0</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Unique Visitors</div>
+        <div class="value indigo" id="uniqueVisitors">0</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Days Tracked</div>
+        <div class="value orange" id="daysTracked">0</div>
+      </div>
+    </div>
+
+    <!-- Daily Chart -->
+    <div class="section">
+      <h2>Daily Visits (Last 30 Days)</h2>
+      <div class="chart-container" id="dailyChart"></div>
+    </div>
+
+    <!-- Locations -->
+    <div class="section">
+      <h2>Top Locations</h2>
+      <div class="location-grid">
+        <div>
+          <h3 style="font-size:13px; color:var(--text-muted); margin-bottom:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">By Country</h3>
+          <ul class="location-list" id="countryList"></ul>
+        </div>
+        <div>
+          <h3 style="font-size:13px; color:var(--text-muted); margin-bottom:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">By City</h3>
+          <ul class="location-list" id="cityList"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visitor Log -->
+    <div class="section">
+      <h2>Visitor Log</h2>
+      <div class="visitor-controls">
+        <select id="dateSelect" onchange="loadVisitorLog()"></select>
+        <input type="text" id="visitorSearch" placeholder="Search IP, city, country..." oninput="filterVisitorLog()">
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="visitors-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Time</th>
+              <th>IP Address</th>
+              <th>Location</th>
+              <th>Device</th>
+              <th>Referrer</th>
+            </tr>
+          </thead>
+          <tbody id="visitorBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-msg" id="noVisitors" style="display:none;">No visitors recorded for this date.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let summaryData = null;
+  let currentVisitors = [];
+
+  async function init() {
+    try {
+      const res = await fetch('/api/analytics?summary=true');
+      summaryData = await res.json();
+      renderSummary();
+      renderChart();
+      renderLocations();
+      populateDateSelect();
+      await loadVisitorLog();
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('dashboardContent').style.display = 'block';
+    } catch (err) {
+      document.getElementById('loadingState').textContent = 'Failed to load analytics: ' + err.message;
+    }
+  }
+
+  function renderSummary() {
+    document.getElementById('todayVisits').textContent = summaryData.todayVisits.toLocaleString();
+    document.getElementById('totalVisits').textContent = summaryData.totalVisits.toLocaleString();
+    document.getElementById('uniqueVisitors').textContent = summaryData.uniqueVisitors.toLocaleString();
+    document.getElementById('daysTracked').textContent = summaryData.totalDaysTracked;
+  }
+
+  function renderChart() {
+    const container = document.getElementById('dailyChart');
+    const counts = summaryData.dailyCounts;
+    if (!counts || counts.length === 0) {
+      container.innerHTML = '<div class="empty-msg">No daily data yet.</div>';
+      return;
+    }
+    const max = Math.max(...counts.map(c => c.count), 1);
+    container.innerHTML = counts.map(c => {
+      const h = Math.max((c.count / max) * 140, 2);
+      const label = c.date.slice(5); // MM-DD
+      return `<div class="chart-bar-wrap">
+        <div class="chart-bar" style="height:${h}px;">
+          <div class="tooltip">${c.date}: ${c.count}</div>
+        </div>
+        <div class="chart-label">${label}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderLocations() {
+    const countryList = document.getElementById('countryList');
+    const cityList = document.getElementById('cityList');
+
+    countryList.innerHTML = (summaryData.topCountries || []).map(c =>
+      `<li class="location-item">
+        <span class="location-name">${esc(c.name)}</span>
+        <span class="location-count green-bg">${c.count}</span>
+      </li>`
+    ).join('') || '<li class="empty-msg" style="padding:20px;">No data yet.</li>';
+
+    cityList.innerHTML = (summaryData.topCities || []).map(c =>
+      `<li class="location-item">
+        <span class="location-name">${esc(c.name)}</span>
+        <span class="location-count">${c.count}</span>
+      </li>`
+    ).join('') || '<li class="empty-msg" style="padding:20px;">No data yet.</li>';
+  }
+
+  function populateDateSelect() {
+    const select = document.getElementById('dateSelect');
+    const today = new Date().toISOString().slice(0, 10);
+    const dates = (summaryData.dailyCounts || []).map(c => c.date).reverse();
+    if (!dates.includes(today)) dates.unshift(today);
+    select.innerHTML = dates.map(d =>
+      `<option value="${d}" ${d === today ? 'selected' : ''}>${d}${d === today ? ' (Today)' : ''}</option>`
+    ).join('');
+  }
+
+  async function loadVisitorLog() {
+    const date = document.getElementById('dateSelect').value;
+    try {
+      const res = await fetch(`/api/analytics?date=${date}`);
+      const data = await res.json();
+      currentVisitors = data.visits || [];
+      renderVisitorTable(currentVisitors);
+    } catch (err) {
+      console.error('Failed to load visitor log:', err);
+    }
+  }
+
+  function filterVisitorLog() {
+    const q = document.getElementById('visitorSearch').value.toLowerCase();
+    const filtered = currentVisitors.filter(v =>
+      !q ||
+      (v.ip || '').toLowerCase().includes(q) ||
+      (v.city || '').toLowerCase().includes(q) ||
+      (v.country || '').toLowerCase().includes(q) ||
+      (v.userAgent || '').toLowerCase().includes(q)
+    );
+    renderVisitorTable(filtered);
+  }
+
+  function renderVisitorTable(visitors) {
+    const tbody = document.getElementById('visitorBody');
+    const noMsg = document.getElementById('noVisitors');
+    if (visitors.length === 0) {
+      tbody.innerHTML = '';
+      noMsg.style.display = 'block';
+      return;
+    }
+    noMsg.style.display = 'none';
+    tbody.innerHTML = visitors.map((v, i) => {
+      const time = v.timestamp ? new Date(v.timestamp).toLocaleTimeString() : '-';
+      const device = parseDevice(v.userAgent);
+      const city = v.city || 'Unknown';
+      const country = v.country || '??';
+      const referrer = v.referrer ? new URL(v.referrer).hostname : 'Direct';
+      return `<tr>
+        <td>${i + 1}</td>
+        <td>${time}</td>
+        <td class="ip">${esc(v.ip)}</td>
+        <td>
+          <span class="badge badge-city">${esc(city)}</span>
+          <span class="badge badge-country">${esc(country)}</span>
+        </td>
+        <td title="${esc(v.userAgent)}"><span class="device-icon">${device.icon}</span>${device.label}</td>
+        <td title="${esc(v.referrer || '')}">${esc(referrer)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function parseDevice(ua) {
+    if (!ua) return { icon: '?', label: 'Unknown' };
+    ua = ua.toLowerCase();
+    if (ua.includes('iphone')) return { icon: '📱', label: 'iPhone' };
+    if (ua.includes('ipad')) return { icon: '📱', label: 'iPad' };
+    if (ua.includes('android')) return { icon: '📱', label: 'Android' };
+    if (ua.includes('macintosh') || ua.includes('mac os')) return { icon: '💻', label: 'Mac' };
+    if (ua.includes('windows')) return { icon: '💻', label: 'Windows' };
+    if (ua.includes('linux')) return { icon: '🖥️', label: 'Linux' };
+    if (ua.includes('bot') || ua.includes('crawl') || ua.includes('spider')) return { icon: '🤖', label: 'Bot' };
+    return { icon: '🌐', label: 'Other' };
+  }
+
+  function esc(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+  }
+
+  init();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+
+</body>
+</html>

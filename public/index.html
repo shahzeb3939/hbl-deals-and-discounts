@@ -780,7 +780,11 @@
   }
 
   loadDeals();
+
+  // Track visit
+  fetch('/api/track?path=' + encodeURIComponent(location.pathname)).catch(() => {});
 </script>
+<script defer src="/_vercel/insights/script.js"></script>
 
 </body>
 </html>
