@@ -573,8 +573,9 @@
       const res = await fetch(`/api/deals?city=${encodeURIComponent(city)}&card=${encodeURIComponent(card)}`);
       const data = await res.json();
       if (!data.deals || data.deals.length === 0) {
-        // No cached data — auto-fetch
-        refreshDeals();
+        // Deliberately no auto-scrape here: it meant every visitor hitting an
+        // empty cache kicked off their own 60s scrape.
+        setStatus(data.message || 'No deals cached yet. Click "Refresh Deals" to fetch.', '');
         return;
       }
       renderData(data);
@@ -781,8 +782,17 @@
 
   loadDeals();
 
-  // Track visit
-  fetch('/api/track?path=' + encodeURIComponent(location.pathname)).catch(() => {});
+  // Track visit — once per browser session, not on every page load or refresh.
+  (function trackVisit() {
+    const url = '/api/track?path=' + encodeURIComponent(location.pathname);
+    try {
+      if (sessionStorage.getItem('visitTracked')) return;
+      sessionStorage.setItem('visitTracked', '1');
+    } catch (e) {
+      // sessionStorage unavailable (private mode) — fall through and track once.
+    }
+    fetch(url).catch(() => {});
+  })();
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 
